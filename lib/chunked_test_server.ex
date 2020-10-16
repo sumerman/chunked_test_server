@@ -10,7 +10,13 @@ defmodule ChunkedTestServer do
     plug(:dispatch)
 
     def allow_origin(conn, _opts) do
-      put_resp_header(conn, "Access-Control-Allow-Origin", "*")
+      [
+        {"Access-Control-Allow-Origin", "*"},
+        {"Access-Control-Allow-Methods", "GET"},
+        {"Access-Control-Allow-Credentials", "true"},
+        {"Access-Control-Allow-Headers", "application/json"}
+      ]
+      |> Enum.reduce(conn, fn {h, v}, c -> put_resp_header(c, h, v) end)
     end
 
     defp maybe_limit(stream, conn) do
@@ -30,6 +36,7 @@ defmodule ChunkedTestServer do
       conn =
         conn
         |> fetch_query_params()
+        |> Plug.Conn.put_resp_content_type("application/json")
         |> send_chunked(200)
 
       Stream.iterate(0, fn x -> x + 1 end)
@@ -64,12 +71,17 @@ defmodule ChunkedTestServer do
       {Plug.Cowboy, scheme: :http, plug: Router, options: [port: port]}
     ]
 
-    ret = {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one, name: ChunkedTestServer.Supervisor)
+    ret =
+      {:ok, _} =
+      Supervisor.start_link(children, strategy: :one_for_one, name: ChunkedTestServer.Supervisor)
+
     Logger.info("Listening on port #{port}...")
+
     Logger.info("""
     Try fetching http://localhost:#{port}/chunks
     or http://localhost:#{port}/chunks?rows=200
     """)
+
     ret
   end
 end
