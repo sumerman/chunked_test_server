@@ -5,8 +5,13 @@ defmodule ChunkedTestServer do
   defmodule Router do
     use Plug.Router
 
+    plug(:allow_origin)
     plug(:match)
     plug(:dispatch)
+
+    def allow_origin(conn, _opts) do
+      put_resp_header(conn, "Access-Control-Allow-Origin", "*")
+    end
 
     defp maybe_limit(stream, conn) do
       if Map.has_key?(conn.query_params, "rows") do
