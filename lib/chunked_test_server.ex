@@ -32,6 +32,12 @@ defmodule ChunkedTestServer do
       end
     end
 
+    options "/chunks" do
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(200, "")
+    end
+
     get "/chunks" do
       conn =
         conn
