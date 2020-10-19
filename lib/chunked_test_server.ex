@@ -42,7 +42,7 @@ defmodule ChunkedTestServer do
       conn =
         conn
         |> fetch_query_params()
-        |> Plug.Conn.put_resp_content_type("application/json")
+        |> put_resp_content_type("application/json")
         |> send_chunked(200)
 
       Stream.iterate(0, fn x -> x + 1 end)
@@ -63,6 +63,12 @@ defmodule ChunkedTestServer do
             {:halt, conn}
         end
       end)
+    end
+
+    match "/ping" do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(200, "pong")
     end
 
     match _ do
